@@ -639,7 +639,7 @@ There have been a total of `r fmt_count(linelist_cleaned, dehydration_level_at_a
 
 
 ## Characteristics of cases in `r reporting_week`
-In `r reporting_week`, there were `r nrow(linelist_cleaned %>% filter(epiweek == reporting_week))` cases with the most affected age group being `r tab_linelist(filter(linelist_cleaned,epiweek == reporting_week), age_group) %>% slice(which.max(n)) %>% pull(value)` years and most affected camp being `r tab_linelist(filter(linelist_cleaned,epiweek == reporting_week), patient_origin) %>% slice(which.max(n)) %>% pull(value)`. There were `r fmt_count(filter(linelist_cleaned,epiweek == reporting_week), exit_status == 2)` deaths and `r fmt_count(filter(linelist_cleaned, epiweek == reporting_week), exit_status == 4 | exit_status == "Admission")` admissions and  `r fmt_count(filter(linelist_cleaned, epiweek == reporting_week), cholera_rdt_result == "+")` Cholera RDT positive cases.
+In `r reporting_week`, there were `r nrow(linelist_cleaned %>% filter(epiweek == reporting_week))` cases with the most affected age group being `r tab_linelist(filter(linelist_cleaned,epiweek == reporting_week), age_group) %>% slice(which.max(n)) %>% pull(value)` years and most affected camp being `r tab_linelist(filter(linelist_cleaned,epiweek == reporting_week), patient_origin) %>% slice(which.max(n)) %>% pull(value)`. There were `r fmt_count(filter(linelist_cleaned,epiweek == reporting_week), exit_status == "Died")` deaths and `r fmt_count(filter(linelist_cleaned, epiweek == reporting_week), exit_status == "Admission")` admissions and  `r fmt_count(filter(linelist_cleaned, epiweek == reporting_week), cholera_rdt_result == "+")` Cholera RDT positive cases.
 
 
 ## Recommendations
@@ -1209,6 +1209,7 @@ inc_week_7_age_plot <- plot(inc_week_7_age,
                             border = "black", 
                             n_breaks = nrow(inc_week_7_age)) + 
   scale_y_continuous(expand = c(0,0)) +  # set origin for axes
+  scale_x_date(breaks = "1 month", date_labels = "%d %b %Y") +
   epicurve_theme +
   labs(x = "Epi week", 
        y = "Cases (n)",
@@ -1257,6 +1258,7 @@ inc_week_7_outcome <- incidence(linelist_cleaned$date_of_onset,
 inc_week_7_outcome_plot <- plot(inc_week_7_outcome, border = "black",
                                 n_breaks = nrow(inc_week_7_outcome)) +
   scale_y_continuous(expand = c(0, 0)) +  # set origin for axes
+  scale_x_date(breaks = "1 month", date_labels = "%d %b %Y") +
   # add labels to axes and below chart
   labs(x = "Calendar week", 
        y = "Cases (n)",
