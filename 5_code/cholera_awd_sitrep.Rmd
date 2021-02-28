@@ -104,7 +104,7 @@ Monday.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 ```{r define_current_week}
 ## set current week 
-reporting_week <- yearweek("2021 W07", week_start = 7)
+reporting_week <- yearweek("2021 W06", week_start = 7)
 
 ## sets the labels in ggplot for the epicurves
 # epicurve_labels <- labs(x = "Calendar week", 
@@ -129,7 +129,7 @@ If you have already loaded data from DHIS2, go to read_population_data.
 ## Excel file ------------------------------------------------------------------
 ## to read in a specific sheet use "which"
 linelist_raw <- rio::import(here::here("4_data", 
-                                       "AWD_R Analysis_Linelist_2020.xlsx"),
+                                       "AWD_R Analysis_Linelist_2020_1.xlsx"),
                             which = "AWD Linelist")
 ```
 
@@ -235,106 +235,6 @@ linelist_cleaned <- rename(linelist_cleaned,
 )
 
 ```
-
-
-
-
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/// read_population_data \\\
---------------------------------------------------------------------------------
-
-This template uses population data to calculate things like incidence.
-
-There are three options:
-- You can read in a spreadsheet with age group and region data.
-- You can put in the specific populations into the gen_population function. 
-- If you have the total or regional populations, you can estimate the age group
-from proportions.
-
-Comment out the options you are not using.
-
-
-Age group proportions are from the OCBA population denominators tool v1. The
-proportions below are for sub-Saharan Africa in 2019. They are only an estimate!
-If you have more specific proportions, you can use them below.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-
-```{r read_population_data, warning = FALSE, message = FALSE}
-## Read data -------------------------------------------------------------------
-## This step reads in your population data from Excel.
-## You may need to rename your columns.
-
-# population_data <- rio::import(here::here("population.xlsx"), which = "Sheet1")
-
-## repeat preparation steps as appropriate
-
-
-
-## Enter counts directly -------------------------------------------------------
-
-# population_data_age <- gen_population(
-#   groups = c("0-2", "3-14", "15-29", "30-44", "45+"),
-#   counts = c(3600, 18110, 13600, 8080, 6600),
-#   strata = NULL) %>%
-#   rename(age_group = groups,
-#     population = n)
-
-# population_data_region <- gen_population(
-#   groups = c("Village A", "Village B", "Village C", "Village D"),
-#   counts = c(10000, 20000, 15000, 5000),
-#   strata = NULL) %>%               # do not stratify by gender
-#   rename(patient_origin = groups,  # rename columns (syntax is NEW NAME = OLD NAME)
-#          population = n)
-
-
-## Create counts from proportions ----------------------------------------------
-## This step helps you estimate sub-group size with proportions.
-## You need to replace the total_pop and proportions. You can change the groups
-## to fit your needs.
-
-
-# # estimate population size by age group in years
-# population_data_age <- gen_population(total_pop = 5000,
-#   groups = c("0-2", "3-14", "15-29", "30-44", "45+"),
-#   proportions = c(0.068, 0.3622, 0.276, 0.1616, 0.1321),
-#   strata = NULL) %>%
-#   rename(age_group = groups,
-#     population = n)
-# 
-# 
-# # estimate population size by age group in months (under 2 years) 
-# population_data_age_months <- gen_population(total_pop = 5000,
-#   groups = c("0-5", "6-8", "9-11","12-24"),
-#   proportions = c(0.0164, 0.088, 0.088, 0.034),
-#   strata = NULL) %>%
-#   rename(age_group_mon = groups,
-#     population = n)
-
-
-## estimate population size by age categories in months and years 
-# population_data_age_categories <- gen_population(total_pop = 5000,
-#   groups = c("0-5 months", "6-8 months", "9-11 months","12-24 months",
-#              "3-14 years", "15-29 years", "30-44 years", "45+ years"),
-#   proportions = c(0.0164, 0.088, 0.088, 0.034, 
-#                   0.3622, 0.276, 0.1616, 0.1321),
-#   strata = NULL) %>%
-#   rename(age_category = groups,
-#     population = n)
-
-
-## estimate population size by region proportion
-# population_data_region <- gen_population(total_pop = 5000,         # set the total population
-#   groups = c("Village A", "Village B", "Village C", "Village D"),  # set the groups
-#   proportions = c(0.221, 0.174, 0.355, 0.245),                     # set the proportions for each group
-#   strata = NULL) %>%               # do not stratify by gender
-#   rename(patient_origin = groups,  # rename columns (syntax is NEW NAME = OLD NAME)
-#          population = n)
-
-```
-
-
-
-
 
 
 <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -519,12 +419,12 @@ linelist_cleaned <- linelist_cleaned %>%
 
 ## Factor (categorical) variables ----------------------------------------------
 
-linelist_cleaned <- linelist_cleaned %>% 
-  ## add labels to exit status
-  mutate(exit_status_cat = factor(exit_status,
-                                  levels = c("1", "2","3", "4", "5"),
-                                  labels = c("Discharged", "Died", "Absconded",
-                                             "Admission", "Referred")))
+# linelist_cleaned <- linelist_cleaned %>% 
+#   ## add labels to exit status
+#   mutate(exit_status_cat = factor(exit_status,
+#                                   levels = c("1", "2","3", "4", "5"),
+#                                   labels = c("Discharged", "Died", "Absconded",
+#                                              "Admission", "Referred")))
   
 
 
@@ -806,7 +706,8 @@ This chunk creates an age/sex pyramid of your cases.
 ```{r age_pyramid, warning=FALSE, fig.height= 5, fig.width= 7}
  plot_age_pyramid(linelist_cleaned,
                   age_group = "age_group", 
-                  split_by = "sex") + 
+                  split_by = "sex",
+                  na.rm = TRUE) + 
   labs(y = "Cases (n)", x = "Age group") + # change axis  labels
   theme(legend.position = "bottom",     # move legend to bottom
         legend.title = element_blank(), # remove title
@@ -1350,7 +1251,7 @@ This chunk shows the weekly incidence by outcome.
 
 inc_week_7_outcome <- incidence(linelist_cleaned$date_of_onset,
                                 interval = "Monday week",
-                                groups = linelist_cleaned$exit_status_cat)
+                                groups = linelist_cleaned$exit_status)
 
 
 inc_week_7_outcome_plot <- plot(inc_week_7_outcome, border = "black",
