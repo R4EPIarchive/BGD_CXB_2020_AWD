@@ -104,7 +104,7 @@ Monday.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 ```{r define_current_week}
 ## set current week 
-reporting_week <- yearweek("2021 W06", week_start = 7)
+reporting_week <- yearweek("2021 W08", week_start = 7)
 
 ## sets the labels in ggplot for the epicurves
 # epicurve_labels <- labs(x = "Calendar week", 
@@ -129,7 +129,7 @@ If you have already loaded data from DHIS2, go to read_population_data.
 ## Excel file ------------------------------------------------------------------
 ## to read in a specific sheet use "which"
 linelist_raw <- rio::import(here::here("4_data", 
-                                       "AWD_R Analysis_Linelist_2020_1.xlsx"),
+                                       "AWD_R Analysis_Linelist_2020.xlsx"),
                             which = "AWD Linelist")
 ```
 
@@ -630,7 +630,7 @@ There is code to include:
 This AWD SitRep covers the period from `r first_week` to `r reporting_week`. 
 
 ## Demographics of cases since the start of the outbreak
-From the start of the outbreak up until `r reporting_week` there were a total of `r nrow(linelist_cleaned)` cases. There were `r fmt_count(linelist_cleaned, sex == "Female")` females and `r fmt_count(linelist_cleaned, sex == "Male")` males. The most affected age group was `r tab_linelist(linelist_cleaned, age_group) %>% slice(which.max(n)) %>% pull(value)` years.  There have been a total of `r fmt_count(linelist_cleaned, exit_status == 2)` deaths and `r fmt_count(linelist_cleaned, exit_status == 4 | exit_status == "Admission")` admissions and `r fmt_count(linelist_cleaned, cholera_rdt_result == "+")` Cholera RDT positive cases. The most affected camp was `r tab_linelist(linelist_cleaned, patient_origin) %>% slice(which.max(n)) %>% pull(value)`.
+From the start of the outbreak up until `r reporting_week` there were a total of `r nrow(filter(linelist_cleaned, epiweek <= reporting_week))` cases, of which `r nrow(filter(linelist_cleaned, epiweek == reporting_week)` were identified in `r reporting_week`. There were `r fmt_count(filter(linelist_cleaned, epiweek <= reporting_week), sex == "Female")` females and `r fmt_count(filter(linelist_cleaned, epiweek <= reporting_week), sex == "Male")` males. The most affected age group was `r tab_linelist(filter(linelist_cleaned, epiweek <= reporting_week), age_group) %>% slice(which.max(n)) %>% pull(value)` years.  There have been a total of `r fmt_count(filter(linelist_cleaned, epiweek <= reporting_week), exit_status == 2)` deaths and `r fmt_count(filter(linelist_cleaned, epiweek <= reporting_week), exit_status == 4 | exit_status == "Admission")` admissions and `r fmt_count(linelist_cleaned, cholera_rdt_result == "+")` Cholera RDT positive cases. The most affected camp was `r tab_linelist(linelist_cleaned, patient_origin) %>% slice(which.max(n)) %>% pull(value)`.
 
 
 ## Clinical characteristics of cases since the start of the outbreak
