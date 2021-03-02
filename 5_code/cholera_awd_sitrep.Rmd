@@ -583,6 +583,16 @@ of the reporting period.
 # 
 # # define the first week of outbreak (date of first case)
 first_week <- min(linelist_cleaned$epiweek, na.rm = TRUE)
+
+
+## Create a version of the linelist that only includes data up until the reporting week
+linelist_cleaned_current <- linelist_cleaned %>% 
+  ## filter to only include data up until the reporting week
+  filter(epiweek <= reporting_week)
+
+
+
+
 ```
 
 
@@ -601,40 +611,16 @@ rio::export(linelist_cleaned,
                        str_glue("linelist_cleaned_{Sys.Date()}.xlsx")))
 ```
 
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-After adjusting and running the above code, you will have a clean dataset.
-This marks the start of the ANALYSIS portion of the template.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-
-
-<!-- ## Automated text for summary -->
-```{r demographics}
-
-
-
-```
-
-
-
-<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This section focuses on who is affected - total, by sex, by age.
-There is code to include:
-- A bar chart of case numbers of incidence by age group.
-- Attack rate (AR)
-- Number of deaths (in suspected and confirmed cases)
-- Mortality rates
-- Case fatality ratio (CFR)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 
 # Summary
 This AWD SitRep covers the period from `r first_week` to `r reporting_week`. 
 
 ## Demographics of cases since the start of the outbreak
-From the start of the outbreak up until `r reporting_week` there were a total of `r nrow(filter(linelist_cleaned, epiweek <= reporting_week))` cases, of which `r nrow(filter(linelist_cleaned, epiweek == reporting_week)` were identified in `r reporting_week`. There were `r fmt_count(filter(linelist_cleaned, epiweek <= reporting_week), sex == "Female")` females and `r fmt_count(filter(linelist_cleaned, epiweek <= reporting_week), sex == "Male")` males. The most affected age group was `r tab_linelist(filter(linelist_cleaned, epiweek <= reporting_week), age_group) %>% slice(which.max(n)) %>% pull(value)` years.  There have been a total of `r fmt_count(filter(linelist_cleaned, epiweek <= reporting_week), exit_status == 2)` deaths and `r fmt_count(filter(linelist_cleaned, epiweek <= reporting_week), exit_status == 4 | exit_status == "Admission")` admissions and `r fmt_count(linelist_cleaned, cholera_rdt_result == "+")` Cholera RDT positive cases. The most affected camp was `r tab_linelist(linelist_cleaned, patient_origin) %>% slice(which.max(n)) %>% pull(value)`.
+From the start of the outbreak up until `r reporting_week` there were a total of `r nrow(linelist_cleaned_current)` cases, of which `r nrow(filter(linelist_cleaned, epiweek == reporting_week)` were identified in `r reporting_week`. There were `r fmt_count(linelist_cleaned_current, sex == "Female")` females and `r fmt_count(linelist_cleaned_current, sex == "Male")` males. The most affected age group was `r tab_linelist(linelist_cleaned_current, age_group) %>% slice(which.max(n)) %>% pull(value)` years.  There have been a total of `r fmt_count(linelist_cleaned_current, exit_status == 2)` deaths and `r fmt_count(linelist_cleaned_current, exit_status == 4 | exit_status == "Admission")` admissions and `r fmt_count(linelist_cleaned_current, cholera_rdt_result == "+")` Cholera RDT positive cases. The most affected camp was `r tab_linelist(linelist_cleaned_current, patient_origin) %>% slice(which.max(n)) %>% pull(value)`.
 
 
 ## Clinical characteristics of cases since the start of the outbreak
-There have been a total of `r fmt_count(linelist_cleaned, dehydration_level_at_admission == "Y")` patients dehydrated at admission. From the start of the outbreak, `r fmt_count(linelist_cleaned, fluids_treatment_plan == "Treatment plan A")` patients recevied treatment plan A, `r fmt_count(linelist_cleaned, fluids_treatment_plan == "Treatment plan B")` received treatment plan B, and `r fmt_count(linelist_cleaned, fluids_treatment_plan == "Treatment plan C")` received treatment plan C.
+There have been a total of `r fmt_count(linelist_cleaned_current, dehydration_level_at_admission == "Y")` patients dehydrated at admission. From the start of the outbreak, `r fmt_count(linelist_cleaned_current, fluids_treatment_plan == "Treatment plan A")` patients recevied treatment plan A, `r fmt_count(linelist_cleaned_current, fluids_treatment_plan == "Treatment plan B")` received treatment plan B, and `r fmt_count(linelist_cleaned_current, fluids_treatment_plan == "Treatment plan C")` received treatment plan C.
 
 
 
@@ -704,7 +690,7 @@ This chunk will create a table of cases by age group and sex.
 This chunk creates an age/sex pyramid of your cases.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 ```{r age_pyramid, warning=FALSE, fig.height= 5, fig.width= 7}
- plot_age_pyramid(linelist_cleaned,
+ plot_age_pyramid(linelist_cleaned_current,
                   age_group = "age_group", 
                   split_by = "sex",
                   na.rm = TRUE) + 
@@ -1200,9 +1186,9 @@ You can plot weekly incidence by age_group using this chunk.
 ```{r incidence_by_age_group, message = FALSE}
 
 # get counts by age
-inc_week_7_age <- incidence(linelist_cleaned$date_of_onset, 
+inc_week_7_age <- incidence(linelist_cleaned_current$date_of_onset, 
                                interval = "Monday week", 
-                               groups = linelist_cleaned$age_group)
+                               groups = linelist_cleaned_current$age_group)
 
 inc_week_7_age_plot <- plot(inc_week_7_age, 
                             show_cases = FALSE, # this removes black borders
@@ -1250,9 +1236,9 @@ This chunk shows the weekly incidence by outcome.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 ```{r incidence_by_outcome, message = FALSE}
 
-inc_week_7_outcome <- incidence(linelist_cleaned$date_of_onset,
+inc_week_7_outcome <- incidence(linelist_cleaned_current$date_of_onset,
                                 interval = "Monday week",
-                                groups = linelist_cleaned$exit_status)
+                                groups = linelist_cleaned_current$exit_status)
 
 
 inc_week_7_outcome_plot <- plot(inc_week_7_outcome, border = "black",
@@ -1537,7 +1523,7 @@ and by facility. If you only have one facility, you can remove the strata.
 
 ```{r plot_cases_camp, echo = FALSE, fig.height = 5}
 
-ggplot(linelist_cleaned, aes(x = patient_origin)) +
+ggplot(linelist_cleaned_current, aes(x = patient_origin)) +
   geom_bar(fill  = "darkred") +
   theme_classic() +
   theme (text=element_text(size=10), axis.text.x= element_text(angle=90), legend.position= "none") +
@@ -1680,7 +1666,7 @@ Make sure you delete or comment out the section you are not using.
 ```{r choropleth_awd_all_time_maps, message = FALSE, warning = FALSE}
 
 ## Create a summary database that counts the number of cases per camp
-total_awd_counts <- linelist_cleaned %>% 
+total_awd_counts <- linelist_cleaned_current %>% 
   ## select site_name and count
   select(site_name) %>% 
   group_by_all() %>% 
@@ -1731,7 +1717,7 @@ awd_all_time_map <- ggplot() +
 ```{r choropleth_awd_past_week_maps, message = FALSE, warning = FALSE}
 
 ## Create a summary database that counts the number of cases per camp
-past_week_awd_counts <- linelist_cleaned %>% 
+past_week_awd_counts <- linelist_cleaned_current %>% 
   ## filter only on reportingn week
   filter(epiweek == reporting_week) %>% 
   ## select site_name and count
